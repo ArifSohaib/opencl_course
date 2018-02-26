@@ -2,7 +2,7 @@
 #define PROGRAM_FILE "matvec.cl"
 #define KERNEL_FUNC "matvec_mult_loop"
 
-#define NUM_VEC 128
+#define NUM_VEC 1024
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,25 +59,16 @@ int main()
     /* check the CPU compute timings */
     int j = 0;
     start_cpu = clock();
-    //   for(i=0; i<NUM_VEC; i++) {
-    //      vec[i] = i * 3.0f;
-    //      correct[0] += mat[i]    * vec[i];
-    //      correct[1] += mat[i+8]  * vec[i];
-    //      correct[2] += mat[i+16]  * vec[i];
-    //      correct[3] += mat[i+24] * vec[i];
-    //      correct[4] += mat[i + 32] * vec[i];
-    //      correct[5] += mat[i + 40] * vec[i];
-    //      correct[6] += mat[i + 56] * vec[i];
-    //      correct[7] += mat[i + 62] * vec[i];
-    //   }
     for (i = 0; i < NUM_VEC; i++)
     {
         for (j = 0; j < NUM_VEC; j++){
-            printf("i=%i, j=%i, i + (j * NUM_VEC)=%i\n", i, j, i + (j * NUM_VEC));
+            //uncomment for debug
+            // printf("i=%i, j=%i, i + (j * NUM_VEC)=%i\n", i, j, i + (j * NUM_VEC));
             correct[j] += mat[i + (j * NUM_VEC)] * vec[i];
         }
     }
-    printf("\n");
+    //uncomment for debug
+    // printf("\n");
     end_cpu = clock();
     cpu_time = ((double)(end_cpu - start_cpu)) / CLOCKS_PER_SEC;
     /* Identify a platform */
@@ -199,7 +190,6 @@ int main()
     }
     end_gpu = clock();
     gpu_time = ((double)(end_gpu - start_gpu)) / CLOCKS_PER_SEC;
-    //    printf("Kernel took %f seconds to run\n", cpu_time_used);
 
     /* Read the result */
     err = clEnqueueReadBuffer(queue, res_buff, CL_TRUE, 0, sizeof(float) * NUM_VEC,
@@ -210,21 +200,22 @@ int main()
         exit(1);
     }
 
-    for(int i = 0; i < NUM_VEC; i++){
-        printf("result[%i] = %f\t correct[%i] = %f\n",i, result[i], i, correct[i]);
-    }
-    printf("\n");
+    //uncomment for debug
+    // for(int i = 0; i < NUM_VEC; i++){
+    //     printf("result[%i] = %f\t correct[%i] = %f\n",i, result[i], i, correct[i]);
+    // }
+    // printf("\n");
     /* Test the result */
-    // if ((result[0] == correct[0]) && (result[1] == correct[1]) && (result[2] == correct[2]) && (result[3] == correct[3]))
-    // {
-    //     printf("%f\t%f\n", cpu_time, gpu_time);
-    // }
-    // else
-    // {
-    //     printf("Matrix-vector multiplication unsuccessful.\n");
-    // }
-    // removed the accuracy test as we only need to test the operation
-    printf("%f\t%f\n", cpu_time, gpu_time);
+    if ((result[0] == correct[0]) && (result[1] == correct[1]) && (result[2] == correct[2]) && (result[3] == correct[3]))
+    {
+        printf("%i\t%f\t%f\n", NUM_VEC, cpu_time, gpu_time);
+    }
+    else
+    {
+        printf("Matrix-vector multiplication unsuccessful.\n");
+    }
+
+    // printf("%f\t%f\n", cpu_time, gpu_time);
 
     /* Deallocate resources */
     clReleaseMemObject(mat_buff);
